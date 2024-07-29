@@ -1,0 +1,84 @@
+- step:
+    name: preprocess
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
+      - python preprocess.py
+
+- step:
+    name: train_model
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
+      - python train_model.py
+    inputs:
+      - name: dataset
+        default: datum://california_housing_dataset
+
+- step:
+    name: inference_and_report
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
+      - pip install valohai-utils
+      - python report.py
+    inputs:
+      - name: ref_dataset
+        default: datum://california_housing_dataset
+      - name: cur_dataset
+        default: https://valohai-demo-library-data.s3.eu-west-1.amazonaws.com/drift-detection/evidently_current_data_with_drift.csv
+      - name: model
+        default: datum://california_housing_model
+
+
+- pipeline:
+    name: train-inference-pipeline
+    nodes:
+      - name: preprocess-node
+        type: execution
+        step: preprocess
+      - name: train-model-node
+        type: execution
+        step: train-model
+    edges:
+      - [preprocess-node.outputs.*, train-model-node.inputs.dataset]
+
+
+- step:
+    name: Webhook Entry
+    image: python:3.11
+    command:
+    - pip install valohai-utils
+    - python ./webhook_entry.py
+    inputs:
+    - name: webhook-payload
+      optional: false
+- step:
+    name: Webhook Followup
+    image: python:3.11
+    command:
+    - pip install valohai-utils
+    - python ./webhook_followup.py {parameters}
+    parameters:
+    - name: prompt
+      optional: false
+      type: string
+
+- pipeline:
+    name: Webhook Pipeline
+    edges:
+    - configuration: {}
+      source: entry.metadata.parsed_prompt
+      target: followup.parameter.prompt
+    nodes:
+    - name: entry
+      on-error: stop-all
+      step: Webhook Entry
+      type: execution
+    - name: followup
+      on-error: stop-all
+      step: Webhook Followup
+      type: execution
