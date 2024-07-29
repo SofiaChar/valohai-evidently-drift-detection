@@ -90,4 +90,4 @@
           - when: node-starting
             then: require-approval
     edges:
-      - [drift-detect.parameter.dataset_path,call-retrain.parameter.dataset_path]
+      - [inference_and_drift-detect.parameter.dataset_path,call-retrain.parameter.dataset_path]
