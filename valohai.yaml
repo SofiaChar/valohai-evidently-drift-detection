@@ -10,7 +10,7 @@
         optional: true
     inputs:
       - name: dataset
-        default: {parameter:dataset_path}
+        default: parameter:dataset_path
         optional: true
 
 - step:
@@ -46,14 +46,14 @@
     parameters:
       - name: dataset
         targets:
-          - preprocess.parameters.dataset_path
+          - preprocess-node.parameter.dataset_path
     nodes:
       - name: preprocess-node
         type: execution
         step: preprocess
       - name: train-model-node
         type: execution
-        step: train-model
+        step: train_model
     edges:
-      - [preprocess-node.outputs.*, train-model-node.inputs.dataset]
+      - [preprocess-node.output.*.csv, train-model-node.input.dataset]
 
