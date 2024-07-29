@@ -10,7 +10,7 @@
         optional: true
     inputs:
       - name: dataset
-        default: parameter:dataset_path
+        default: _{parameter:dataset_path}
         optional: true
 
 - step:
