@@ -9,14 +9,14 @@ from evidently.metrics.base_metric import generate_column_metrics
 
 # Load the preprocessed data
 housing_data = pd.read_csv("/valohai/inputs/ref_dataset/housing_data.csv")
-housing_data_current = pd.read_csv("/valohai/inputs/cur_dataset/evidently_current_data_with_drift.csv")
+housing_data_current = pd.read_csv("/valohai/inputs/cur_dataset/evidently_data_with_drift.csv")
 
 # Load the trained model
 model = joblib.load("/valohai/inputs/model/random_forest_model.joblib")
 
 # Make predictions
 housing_data['prediction'] = model.predict(housing_data.drop(columns=['target', 'prediction']))
-housing_data_current['prediction'] = model.predict(housing_data_current.drop(columns=['target', 'prediction']))
+housing_data_current['prediction'] = model.predict(housing_data_current.drop(columns=['target']))
 
 # Split the data into reference and current datasets
 reference = housing_data.sample(n=5000, replace=False)
@@ -78,12 +78,18 @@ def extract_drift_status(data):
 
 
 drift_status = extract_drift_status(data)
-print(drift_status)
 
-# Check for dataset drift
-if 'data_drift' in drift_status and drift_status['data_drift']:
+true_metrics = [key for key, value in drift_status.items() if value]
+
+# Check if there are any True values and print results
+if true_metrics:
     print("Drift detected in the dataset.")
     valohai.set_status_detail("Drift Detected in the dataset")
+    print(json.dump({'drift': 1}))
+    for metric in true_metrics:
+        print(f"Metric '{metric}' has data drift detected")
 else:
     print("No drift detected in the dataset.")
     valohai.set_status_detail("No drift detected in the dataset")
+
+print(json.dump({'dataset_path': 1}))

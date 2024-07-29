@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.datasets import fetch_california_housing
 
 
-if os.listdir('/valohai/inputs/dataset'):
+if os.path.exists('/valohai/inputs/dataset'):
     the_file = os.listdir('/valohai/inputs/dataset')[0]
     housing_data = pd.read_csv(os.path.join("/valohai/inputs/dataset/", the_file))
 else:
