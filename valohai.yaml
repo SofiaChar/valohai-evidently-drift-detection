@@ -5,13 +5,13 @@
     command:
       - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
       - python preprocess.py
-    parameters:
-      - name: dataset_path
-        optional: true
-    inputs:
-      - name: dataset
-        default: _{parameter:dataset_path}
-        optional: true
+#    parameters:
+#      - name: dataset_path
+#        optional: true
+#    inputs:
+#      - name: dataset
+#        default: _{parameter:dataset_path}
+#        optional: true
 
 - step:
     name: train_model
