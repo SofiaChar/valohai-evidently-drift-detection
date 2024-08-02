@@ -8,4 +8,7 @@ urllib.request.urlopen(urllib.request.Request(
       'hello': 'valohai',
       'dataset': valohai.parameters('dataset_path').value
    }).encode(),
+   headers={
+      'Authorization': 'secret=hYy67rJDgaSc8XGZpgKNuRnZVkCpoGy1QksBPb2Q'
+   }
 ))

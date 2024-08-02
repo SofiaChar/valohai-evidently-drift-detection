@@ -8,6 +8,9 @@ import joblib
 # Load the preprocessed data
 housing_data = pd.read_csv("/valohai/inputs/dataset/housing_data.csv")
 
+# Drop any unnamed columns
+housing_data = housing_data.loc[:, ~housing_data.columns.str.contains('^Unnamed')]
+
 # Split the data for training
 X = housing_data.drop(columns=['target', 'prediction'])
 y = housing_data['target']
