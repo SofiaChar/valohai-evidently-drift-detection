@@ -1,0 +1,82 @@
+- step:
+    name: preprocess
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1 valohai
+      - python preprocess.py
+    inputs:
+      - name: dataset
+        optional: true
+
+- step:
+    name: train_model
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
+      - python train_model.py
+    inputs:
+      - name: dataset
+        default: datum://california_housing_dataset
+
+
+- pipeline:
+    name: train-pipeline
+    nodes:
+      - name: preprocess-node
+        type: execution
+        step: preprocess
+      - name: train-model-node
+        type: execution
+        step: train_model
+    edges:
+      - [preprocess-node.output.*.csv, train-model-node.input.dataset]
+
+
+- step:
+    name: inference_and_report
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install evidently==0.4.16 pandas==2.2.1 scikit-learn==1.4.1.post1
+      - pip install valohai-utils
+      - python report.py
+    inputs:
+      - name: ref_dataset
+        default: datum://california_housing_dataset
+      - name: cur_dataset
+        default: https://valohai-demo-library-data.s3.eu-west-1.amazonaws.com/drift-detection/evidently_data_with_drift.csv
+      - name: model
+        default: datum://california_housing_model
+
+
+- step:
+    name: call-retrain
+    image: python:3.9
+    environment: azure-westeurope-f2sv2
+    command:
+      - pip install valohai-utils
+      - python call-retrain.py
+    parameters:
+      - name: dataset_path
+        optional: true
+
+- pipeline:
+    name: inference-drift-detection-pipeline
+    nodes:
+      - name: inference_and_drift-detect
+        type: execution
+        step: inference_and_report
+        actions:
+          - when: node-complete
+            if: metadata.drift != 1
+            then: stop-pipeline
+      - name: call-retrain
+        type: execution
+        step: call-retrain
+        actions:
+          - when: node-starting
+            then: require-approval
+    edges:
+      - [inference_and_drift-detect.metadata.dataset_path,call-retrain.parameter.dataset_path]
