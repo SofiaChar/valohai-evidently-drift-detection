@@ -107,3 +107,14 @@ Example to run the training pipeline:
    ```bash
    vh pipeline run inference-drift-detection-pipeline --adhoc
    ```
+
+## Working with secrets.
+
+In this project you need to use private token in to use Valohai API in `call-retrain.py`.
+
+Note that you should never include the token in your version control. Instead of pasting it directly into your code, we recommend storing it as a secret environment variable.
+
+You can add environment variables in a couple of ways in Valohai.
+
+- Add the environment variable when creating an execution from the UI (Create Execution -> Environment Variables). The env variable are only available in the execution where it was created.
+- Add the project environment variable (Project Settings -> "Environment Variables" tab -> Check "Secret" checkbox). In this case, the env variable will be available for all executions of the project.
